@@ -1,100 +1,115 @@
-const ShoppingService = require('../src/Shopping-list-service')
-const knex = require('knex')
-require('dotenv').config()
+const ShoppingService = require("../src/Shopping-list-service");
+const knex = require("knex");
+require("dotenv").config();
 
-describe('Shopping service', () => {
-  let db
+describe("Shopping service", () => {
+  let db;
   let testItems = [
     {
-      name: 'Item 1',
+      name: "Item 1",
       price: "50.00",
-      category: 'Lunch'
+      category: "Lunch"
     },
     {
-      name: 'Item 2',
+      name: "Item 2",
       price: "25.00",
-      category: 'Main'
+      category: "Main"
     },
     {
-      name: 'Item 3',
+      name: "Item 3",
       price: "5.00",
-      category: 'Snack'
+      category: "Snack"
+    },
+    {
+      name: "Item 4",
+      price: "5.00",
+      category: "Snack"
     }
-  ]
+  ];
 
   before(() => {
     db = knex({
-      client: 'pg',
+      client: "pg",
       connection: process.env.TEST_URL
-    })
-    return db('shopping_list').truncate()
-  })
+    });
+    return db("shopping_list").truncate();
+  });
   before(() => {
-    return db.into('shopping_list').insert(testItems)
-  })
+    return db.into("shopping_list").insert(testItems);
+  });
 
-  it('Should get 3 items from the DB', () => {
+  afterEach(() => {
+    return db("shopping_list").truncate();
+  });
+  beforeEach(() => {
+    return db.into("shopping_list").insert(testItems);
+  });
+
+  it("Should get 3 items from the DB", () => {
     return ShoppingService.getAllItems(db).then(actual => {
-      expect(actual).to.be.an('Array')
+      expect(actual).to.be.an("Array");
       expect(actual[0]).to.have.all.keys(
-        'id',
-        'price',
-        'name',
-        'date_added',
-        'checked',
-        'category'
-      )
-    })
-  })
+        "id",
+        "price",
+        "name",
+        "date_added",
+        "checked",
+        "category"
+      );
+    });
+  });
 
-  it('Should insert a new item', () => {
+  it("Should insert a new item", () => {
     const testItem = {
-      name: 'Test Item',
+      name: "Test Item",
       price: 20.01,
-      category: 'Lunch'
-    }
+      category: "Lunch"
+    };
 
     return ShoppingService.insertItem(db, testItem).then(actual => {
       expect(actual[0]).to.have.all.keys(
-        'id',
-        'price',
-        'name',
-        'date_added',
-        'checked',
-        'category'
-      )
-    })
-  })
-
-  it('Should delete and item', () => {
-    const deleteID = 3;
-    return ShoppingService.deleteItem(db, deleteID)
-      .then(() => ShoppingService.getAllItems(db))
-      .then(allItems => {
-        const expected = testItems.filter(item => item.id !== deleteID);
-        expect(allItems).to.eql(expected);
-      })
+        "id",
+        "price",
+        "name",
+        "date_added",
+        "checked",
+        "category"
+      );
+    });
   });
 
   it(`updateArticle() updates an article from the 'blogful_articles' table`, () => {
-         const idOfArticleToUpdate = 3
-         const newArticleData = {
-           name: 'updated name',
-           price: "30.00",
-           date_added: new Date(),
-           category: 'Lunch',
-           checked: false
-        }
-        return ShoppingService.updateItem(db, idOfArticleToUpdate, newArticleData)
-           .then(() => ShoppingService.getById(db, idOfArticleToUpdate))
-           .then(article => {
-             expect(article).to.eql({
-               id: idOfArticleToUpdate,
-               ...newArticleData,
-             })
-           })
-       })
+    const idOfArticleToUpdate = 3;
+    const newArticleData = {
+      name: "updated name",
+      price: "30.00",
+      date_added: new Date(),
+      category: "Lunch",
+      checked: false
+    };
+    return ShoppingService.updateItem(db, idOfArticleToUpdate, newArticleData)
+      .then(() => ShoppingService.getById(db, idOfArticleToUpdate))
+      .then(article => {
+        expect(article).to.eql({
+          id: idOfArticleToUpdate,
+          ...newArticleData
+        });
+      });
+  });
 
+  it("Should delete and item", () => {
+    const deleteID = 1;
+    return ShoppingService.deleteItem(db, deleteID)
+      .then(() => ShoppingService.getAllItems(db))
+      .then(allItems => {
+        const expected = testItems.filter(item => item.name !== "Item 1");
+        const test = allItems.map(item => {
+          let {id, checked, date_added, ...rtrn} = item;
+          return rtrn;
+        })
+        expect(test).to.eql(expected);
+      });
+  });
 
-  after(() => db.destroy())
-})
+  after(() => db.destroy());
+});
