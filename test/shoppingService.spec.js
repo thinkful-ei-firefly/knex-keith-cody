@@ -7,17 +7,17 @@ describe('Shopping service', () => {
   let testItems = [
     {
       name: 'Item 1',
-      price: 50,
+      price: "50.00",
       category: 'Lunch'
     },
     {
       name: 'Item 2',
-      price: 25,
+      price: "25.00",
       category: 'Main'
     },
     {
       name: 'Item 3',
-      price: 5,
+      price: "5.00",
       category: 'Snack'
     }
   ]
@@ -55,7 +55,6 @@ describe('Shopping service', () => {
     }
 
     return ShoppingService.insertItem(db, testItem).then(actual => {
-      console.log(actual)
       expect(actual[0]).to.have.all.keys(
         'id',
         'price',
@@ -66,6 +65,36 @@ describe('Shopping service', () => {
       )
     })
   })
+
+  it('Should delete and item', () => {
+    const deleteID = 3;
+    return ShoppingService.deleteItem(db, deleteID)
+      .then(() => ShoppingService.getAllItems(db))
+      .then(allItems => {
+        const expected = testItems.filter(item => item.id !== deleteID);
+        expect(allItems).to.eql(expected);
+      })
+  });
+
+  it(`updateArticle() updates an article from the 'blogful_articles' table`, () => {
+         const idOfArticleToUpdate = 3
+         const newArticleData = {
+           name: 'updated name',
+           price: "30.00",
+           date_added: new Date(),
+           category: 'Lunch',
+           checked: false
+        }
+        return ShoppingService.updateItem(db, idOfArticleToUpdate, newArticleData)
+           .then(() => ShoppingService.getById(db, idOfArticleToUpdate))
+           .then(article => {
+             expect(article).to.eql({
+               id: idOfArticleToUpdate,
+               ...newArticleData,
+             })
+           })
+       })
+
 
   after(() => db.destroy())
 })
