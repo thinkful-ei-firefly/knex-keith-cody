@@ -1,10 +1,9 @@
-const ShoppingService = require('../src/Shopping-list-service');
-const knex = require('knex');
-require('dotenv').config();
-
+const ShoppingService = require('../src/Shopping-list-service')
+const knex = require('knex')
+require('dotenv').config()
 
 describe('Shopping service', () => {
-  let db;
+  let db
   let testItems = [
     {
       name: 'Item 1',
@@ -28,24 +27,45 @@ describe('Shopping service', () => {
       client: 'pg',
       connection: process.env.TEST_URL
     })
-    return db('shopping_list').truncate();
-  });
+    return db('shopping_list').truncate()
+  })
   before(() => {
-    return db.into('shopping_list')
-      .insert(testItems);
-  });
-
-  it('Should get 3 items from the DB', () => {
-    return ShoppingService.getAllItems(db)
-      .then(actual => {
-        expect(actual).to.be.an('Array');
-        expect(actual[0]).to.have.all.keys('id', 'price', 'name', 'date_added', 'checked', 'category');
-      })
+    return db.into('shopping_list').insert(testItems)
   })
 
+  it('Should get 3 items from the DB', () => {
+    return ShoppingService.getAllItems(db).then(actual => {
+      expect(actual).to.be.an('Array')
+      expect(actual[0]).to.have.all.keys(
+        'id',
+        'price',
+        'name',
+        'date_added',
+        'checked',
+        'category'
+      )
+    })
+  })
 
+  it('Should insert a new item', () => {
+    const testItem = {
+      name: 'Test Item',
+      price: 20.01,
+      category: 'Lunch'
+    }
 
-  
+    return ShoppingService.insertItem(db, testItem).then(actual => {
+      console.log(actual)
+      expect(actual[0]).to.have.all.keys(
+        'id',
+        'price',
+        'name',
+        'date_added',
+        'checked',
+        'category'
+      )
+    })
+  })
 
-  after(() => db.destroy());
-}); 
+  after(() => db.destroy())
+})
